@@ -29,18 +29,12 @@ public class TLCalendarGUI extends Application {
         GridPane grid = initGridPane();
 
         Button updateButton = new Button("Update");
-        Label lastUpdated = new Label();
-        updateButton.setOnAction(click -> {
-            try {
-                updateCalendar(grid);
-            } catch (IOException e) {
-                lastUpdated.setText(e.getMessage());
-            }
-            lastUpdated.setText("Last Updated: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm:ss")));
-        });
 
+        Label lastUpdatedLabel = new Label();
+        grid.add(lastUpdatedLabel, 1, 2, 6, 1);
 
-        grid.add(lastUpdated, 1, 2);
+        updateButton.setOnAction(click -> updateCalendar(grid, lastUpdatedLabel));
+
         grid.add(updateButton, 0, 2);
 
         root.getChildren().add(grid);
@@ -51,11 +45,8 @@ public class TLCalendarGUI extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        try {
-            updateCalendar(grid);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        updateCalendar(grid, lastUpdatedLabel);
+
     }
 
     private GridPane initGridPane() {
@@ -77,11 +68,16 @@ public class TLCalendarGUI extends Application {
     }
 
 
-    private void updateCalendar(GridPane grid) throws IOException {
-        fillColumns(TLCalendarParserMain.getNewEvents(), grid);
+    private void updateCalendar(GridPane grid, Label lastUpdatedLabel) {
+        try {
+            populateCalendar(TLCalendarParserMain.getNewEvents(), grid);
+            lastUpdatedLabel.setText("Last Updated: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - hh:mm:ss a")));
+        } catch (IOException e) {
+            lastUpdatedLabel.setText("Error while trying to update!");
+        }
     }
 
-    private void fillColumns(List<Event>[] events, GridPane grid) {
+    private void populateCalendar(List<Event>[] events, GridPane grid) {
         DayOfWeek dow = LocalDateTime.now().getDayOfWeek();
 
         for (int i = 0; i < 7; i++) {
