@@ -78,10 +78,10 @@ public class TLCalendarGUI extends Application {
 
 
     private void updateCalendar(GridPane grid) throws IOException {
-        fillColumns(TLCalendarParserMain.getUpdatedEvents(), grid);
+        fillColumns(TLCalendarParserMain.getNewEvents(), grid);
     }
 
-    private void fillColumns(List<Event>[] updatedEvents, GridPane grid) {
+    private void fillColumns(List<Event>[] events, GridPane grid) {
         DayOfWeek dow = LocalDateTime.now().getDayOfWeek();
 
         for (int i = 0; i < 7; i++) {
@@ -90,14 +90,14 @@ public class TLCalendarGUI extends Application {
             GridPane.setHalignment(header, HPos.CENTER);                                    //Center Weekday-Label
             grid.add(header, i, 0);
 
-            TextArea currentColumnText = new TextArea(getEventsOfWeekday(updatedEvents[i]));           //Add events
+            TextArea currentColumnText = new TextArea(concatEventsOfWeekday(events[i]));           //Add events
             currentColumnText.home();                                                                  //Scroll to top
             currentColumnText.setEditable(false);                                                      //Make uneditable
             grid.add(currentColumnText, i, 1);
         }
     }
 
-    private String getEventsOfWeekday(List<Event> events) {
+    private String concatEventsOfWeekday(List<Event> events) {
         StringBuilder sb = new StringBuilder();
 
         for (Event e : events) {
