@@ -15,25 +15,23 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 
 public class TLCalendarGUI extends Application {
 
+    private ZonedDateTime startDate = ZonedDateTime.now();
+
+    private GridPane grid;
+    private StackPane root;
+    private Label lastUpdatedLabel;
 
     public void start(Stage primaryStage) {
-        StackPane root = new StackPane();
-        GridPane grid = initGridPane();
-
-        Button updateButton = new Button("Update");
-
-        Label lastUpdatedLabel = new Label();
-        grid.add(lastUpdatedLabel, 1, 2, 6, 1);
-
-        updateButton.setOnAction(click -> updateCalendar(grid, lastUpdatedLabel));
-
-        grid.add(updateButton, 0, 2);
+        root = new StackPane();
+        initGridPane();
 
         root.getChildren().add(grid);
 
@@ -43,40 +41,72 @@ public class TLCalendarGUI extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        updateCalendar(grid, lastUpdatedLabel);
-
+        updateCalendar();
     }
 
-    private GridPane initGridPane() {
-        GridPane gridPane = new GridPane();
+    private void initGridPane() {
+        grid = new GridPane();
 
         RowConstraints rcFirstRow = new RowConstraints();                       //First row doesnt resize
         rcFirstRow.setVgrow(Priority.NEVER);
-        gridPane.getRowConstraints().add(rcFirstRow);
+        grid.getRowConstraints().add(rcFirstRow);
 
         RowConstraints rcSecondRow = new RowConstraints();                       //Second does
-        rcSecondRow.setVgrow(Priority.ALWAYS);
-        gridPane.getRowConstraints().add(rcSecondRow);
+        rcSecondRow.setVgrow(Priority.NEVER);
+        grid.getRowConstraints().add(rcSecondRow);
 
         RowConstraints rcThirdRow = new RowConstraints();                       //Third row doesnt resize
-        rcThirdRow.setVgrow(Priority.NEVER);
-        gridPane.getRowConstraints().add(rcThirdRow);
+        rcThirdRow.setVgrow(Priority.ALWAYS);
+        grid.getRowConstraints().add(rcThirdRow);
 
-        return gridPane;
+        RowConstraints rcFourthRow = new RowConstraints();                       //Third row doesnt resize
+        rcFourthRow.setVgrow(Priority.NEVER);
+        grid.getRowConstraints().add(rcFourthRow);
+
+        Button updateButton = new Button("Update");
+
+        lastUpdatedLabel = new Label();
+        this.grid.add(lastUpdatedLabel, 3, 3, 3, 1);
+
+        updateButton.setOnAction(click -> updateCalendar());
+
+        this.grid.add(updateButton, 2, 3);
+
+        Button lastWeekButton = new Button("prev. Week");
+        lastWeekButton.setOnAction(click -> {
+            resetGrid();
+            startDate = startDate.minus(1, ChronoUnit.WEEKS);
+            updateCalendar();
+        });
+        this.grid.add(lastWeekButton, 0, 3);
+
+        Button nextWeekButton = new Button("next Week");
+        nextWeekButton.setOnAction(click -> {
+            resetGrid();
+            startDate = startDate.plus(1, ChronoUnit.WEEKS);
+            updateCalendar();
+        });
+        this.grid.add(nextWeekButton, 1, 3);
+
     }
 
+    private void resetGrid() {
+        root.getChildren().remove(grid);
+        initGridPane();
+        root.getChildren().add(grid);
+    }
 
-    private void updateCalendar(GridPane grid, Label lastUpdatedLabel) {
+    private void updateCalendar() {
         try {
-            populateCalendar(TLCalendarParserMain.getNewEvents(), grid);
+            populateGrid(TLCalendarParserMain.getNewEvents(startDate));
             lastUpdatedLabel.setText("Last Updated: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - hh:mm:ss a")));
         } catch (IOException e) {
             lastUpdatedLabel.setText("Error while trying to update!");
         }
     }
 
-    private void populateCalendar(List<Event>[] events, GridPane grid) {
-        DayOfWeek dow = LocalDateTime.now().getDayOfWeek();
+    private void populateGrid(List<Event>[] events) {
+        DayOfWeek dow = startDate.getDayOfWeek();
 
         for (int i = 0; i < 7; i++) {
             Label header = new Label(dow.plus(i).toString() + "\n\n");                  //Add weekday header
@@ -84,10 +114,15 @@ public class TLCalendarGUI extends Application {
             GridPane.setHalignment(header, HPos.CENTER);                                    //Center Weekday-Label
             grid.add(header, i, 0);
 
+            Label date = new Label(startDate.plus(i, ChronoUnit.DAYS).format(DateTimeFormatter.ofPattern("dd.MM")));
+            header.setFont(Font.font("Verdana",15));
+            GridPane.setHalignment(date, HPos.CENTER);
+            grid.add(date, i, 1);
+
             TextArea currentColumnText = new TextArea(concatEventsOfWeekday(events[i]));           //Add events
             currentColumnText.home();                                                                  //Scroll to top
             currentColumnText.setEditable(false);                                                      //Make uneditable
-            grid.add(currentColumnText, i, 1);
+            grid.add(currentColumnText, i, 2);
         }
     }
 

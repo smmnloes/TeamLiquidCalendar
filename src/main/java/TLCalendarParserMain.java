@@ -21,14 +21,15 @@ class TLCalendarParserMain {
      */
 
     @SuppressWarnings("unchecked")
-    static List<Event>[] getNewEvents() throws IOException {
-
-        Document wholePage = Jsoup.connect("http://www.teamliquid.net/calendar/?game=1").get();
+    static List<Event>[] getNewEvents(ZonedDateTime startDate) throws IOException {
+        String params = "&year=" + startDate.getYear() + "&month=" + startDate.getMonth().getValue() + "&day=" + startDate.getDayOfMonth();
+        String query = "http://www.teamliquid.net/calendar/?view=week&game=1" + params;
+        Document wholePage = Jsoup.connect(query).get();
 
         Elements weekDayColumns = wholePage.getElementsByClass("evc-l");
         List<Event>[] eventListArray = new ArrayList[7];
 
-        for (int i = 0; i < 7; i ++) {
+        for (int i = 0; i < 7; i++) {
             eventListArray[i] = extractEventsFromSection(weekDayColumns.get(i), i);
         }
 
@@ -59,7 +60,7 @@ class TLCalendarParserMain {
 
     /**
      * Converts the time to the local time zone (teamliquid calendar gives times in GMT Zone)
-     * 
+     *
      * @param time - Time in String-form
      * @return Time adjusted by local Time-Zone
      */
