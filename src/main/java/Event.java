@@ -1,6 +1,3 @@
-package TLCalendarParser;
-
-
 public class Event {
 
     private String name;

@@ -1,5 +1,3 @@
-package TLCalendarParser;
-
 import javafx.application.Application;
 import javafx.geometry.HPos;
 import javafx.scene.Scene;

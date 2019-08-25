@@ -5,7 +5,6 @@
       <element id="archive" name="TeamLiquidCalendar.jar">
         <element id="module-output" name="TeamLiquidCalendar" />
       </element>
-      <element id="library" level="project" name="org.jsoup:jsoup:1.10.2" />
     </root>
   </artifact>
 </component>
