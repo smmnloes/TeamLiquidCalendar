@@ -23,14 +23,13 @@ import java.util.List;
 public class TLCalendarGUI extends Application {
 
     private ZonedDateTime startDate = ZonedDateTime.now();
-
-    private GridPane grid;
-    private StackPane root;
     private Label lastUpdatedLabel;
 
     public void start(Stage primaryStage) {
-        root = new StackPane();
-        initGridPane();
+        lastUpdatedLabel = new Label();
+
+        StackPane root = new StackPane();
+        GridPane grid = initGridPane(root);
 
         root.getChildren().add(grid);
 
@@ -39,12 +38,11 @@ public class TLCalendarGUI extends Application {
         primaryStage.setTitle("Team Liquid Starcraft 2 Calendar");
         primaryStage.setScene(scene);
         primaryStage.show();
-
-        updateCalendar();
+        updateCalendar(lastUpdatedLabel, grid, root);
     }
 
-    private void initGridPane() {
-        grid = new GridPane();
+    private GridPane initGridPane(StackPane root) {
+        GridPane grid = new GridPane();
 
         RowConstraints rcFirstRow = new RowConstraints();
         rcFirstRow.setVgrow(Priority.NEVER);
@@ -62,49 +60,48 @@ public class TLCalendarGUI extends Application {
         rcFourthRow.setVgrow(Priority.NEVER);
         grid.getRowConstraints().add(rcFourthRow);
 
-        Button updateButton = new Button("Update");
+        Button refreshButton = new Button("Refresh");
 
-        lastUpdatedLabel = new Label();
-        this.grid.add(lastUpdatedLabel, 3, 3, 3, 1);
+        grid.add(lastUpdatedLabel, 3, 3, 3, 1);
 
-        updateButton.setOnAction(click -> updateCalendar());
+        refreshButton.setOnAction(click -> updateCalendar(lastUpdatedLabel, grid, root));
 
-        this.grid.add(updateButton, 2, 3);
+        grid.add(refreshButton, 2, 3);
 
         Button lastWeekButton = new Button("prev. Week");
         lastWeekButton.setOnAction(click -> {
-            resetGrid();
             startDate = startDate.minus(1, ChronoUnit.WEEKS);
-            updateCalendar();
+            updateCalendar(lastUpdatedLabel, grid, root);
         });
-        this.grid.add(lastWeekButton, 0, 3);
+        grid.add(lastWeekButton, 0, 3);
 
         Button nextWeekButton = new Button("next Week");
         nextWeekButton.setOnAction(click -> {
-            resetGrid();
             startDate = startDate.plus(1, ChronoUnit.WEEKS);
-            updateCalendar();
+            updateCalendar(lastUpdatedLabel, grid, root);
         });
-        this.grid.add(nextWeekButton, 1, 3);
-
+        grid.add(nextWeekButton, 1, 3);
+        return grid;
     }
 
-    private void resetGrid() {
-        root.getChildren().remove(grid);
-        initGridPane();
-        root.getChildren().add(grid);
+    private GridPane resetGrid(StackPane root, GridPane oldGrid) {
+        root.getChildren().remove(oldGrid);
+        GridPane newGrid = initGridPane(root);
+        root.getChildren().add(newGrid);
+        return newGrid;
     }
 
-    private void updateCalendar() {
+    private void updateCalendar(Label lastUpdatedLabel, GridPane grid, StackPane root) {
+        GridPane newGrid = resetGrid(root, grid);
         try {
-            populateGrid(TLCalendarParserMain.getNewEvents(startDate));
+            populateGrid(TLCalendarParserMain.getNewEvents(startDate), newGrid);
             lastUpdatedLabel.setText("Last Updated: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - hh:mm:ss a")));
         } catch (IOException e) {
             lastUpdatedLabel.setText("Error while trying to update!");
         }
     }
 
-    private void populateGrid(List<Event>[] events) {
+    private void populateGrid(List<Event>[] events, GridPane grid) {
         for (int i = 0; i < 7; i++) {
             ZonedDateTime columnDate = startDate.plus(i, ChronoUnit.DAYS);
 
