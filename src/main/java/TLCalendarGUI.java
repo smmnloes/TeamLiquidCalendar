@@ -13,7 +13,6 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -47,19 +46,19 @@ public class TLCalendarGUI extends Application {
     private void initGridPane() {
         grid = new GridPane();
 
-        RowConstraints rcFirstRow = new RowConstraints();                       //First row doesnt resize
+        RowConstraints rcFirstRow = new RowConstraints();
         rcFirstRow.setVgrow(Priority.NEVER);
         grid.getRowConstraints().add(rcFirstRow);
 
-        RowConstraints rcSecondRow = new RowConstraints();                       //Second does
+        RowConstraints rcSecondRow = new RowConstraints();
         rcSecondRow.setVgrow(Priority.NEVER);
         grid.getRowConstraints().add(rcSecondRow);
 
-        RowConstraints rcThirdRow = new RowConstraints();                       //Third row doesnt resize
+        RowConstraints rcThirdRow = new RowConstraints();
         rcThirdRow.setVgrow(Priority.ALWAYS);
         grid.getRowConstraints().add(rcThirdRow);
 
-        RowConstraints rcFourthRow = new RowConstraints();                       //Third row doesnt resize
+        RowConstraints rcFourthRow = new RowConstraints();
         rcFourthRow.setVgrow(Priority.NEVER);
         grid.getRowConstraints().add(rcFourthRow);
 
@@ -106,23 +105,25 @@ public class TLCalendarGUI extends Application {
     }
 
     private void populateGrid(List<Event>[] events) {
-        DayOfWeek dow = startDate.getDayOfWeek();
-
         for (int i = 0; i < 7; i++) {
-            Label header = new Label(dow.plus(i).toString() + "\n\n");                  //Add weekday header
-            header.setFont(Font.font("Verdana", FontWeight.BOLD, 15));           //Make Weekday-Label bold
-            GridPane.setHalignment(header, HPos.CENTER);                                    //Center Weekday-Label
-            grid.add(header, i, 0);
+            ZonedDateTime columnDate = startDate.plus(i, ChronoUnit.DAYS);
 
-            Label date = new Label(startDate.plus(i, ChronoUnit.DAYS).format(DateTimeFormatter.ofPattern("dd.MM")));
-            header.setFont(Font.font("Verdana",15));
-            GridPane.setHalignment(date, HPos.CENTER);
-            grid.add(date, i, 1);
+            Label weekdayLabel = new Label(columnDate.getDayOfWeek().toString() + "\n\n");
+            FontWeight fontWeight = columnDate.getDayOfYear() == ZonedDateTime.now().getDayOfYear() ? FontWeight.BOLD : FontWeight.NORMAL;
+            weekdayLabel.setFont(Font.font("Verdana", fontWeight, 15));
+            GridPane.setHalignment(weekdayLabel, HPos.CENTER);
+            grid.add(weekdayLabel, i, 0);
 
-            TextArea currentColumnText = new TextArea(concatEventsOfWeekday(events[i]));           //Add events
-            currentColumnText.home();                                                                  //Scroll to top
-            currentColumnText.setEditable(false);                                                      //Make uneditable
-            grid.add(currentColumnText, i, 2);
+            Label dateLabel = new Label(columnDate.format(DateTimeFormatter.ofPattern("dd.MM")));
+            dateLabel.setFont(Font.font("Verdana", fontWeight, 15));
+            GridPane.setHalignment(dateLabel, HPos.CENTER);
+            grid.add(dateLabel, i, 1);
+
+            TextArea eventsTextArea = new TextArea(concatEventsOfWeekday(events[i]));
+            eventsTextArea.home();
+            eventsTextArea.setEditable(false);
+
+            grid.add(eventsTextArea, i, 2);
         }
     }
 
