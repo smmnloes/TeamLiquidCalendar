@@ -20,3 +20,10 @@ jar {
     }
 }
 
+task copyDist(type: Copy) {
+    from 'build/libs'
+    into 'dist'
+}
+
+task output(dependsOn: ['jar', 'copyDist'])
+
