@@ -13,7 +13,6 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -96,7 +95,7 @@ public class TLCalendarGUI extends Application {
         try {
             populateGrid(TLCalendarParserMain.getNewEvents(startDate), newGrid);
             lastUpdatedLabel.setText("Last Updated: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - hh:mm:ss a")));
-        } catch (IOException | URISyntaxException e) {
+        } catch (IOException e) {
             lastUpdatedLabel.setText("Error while trying to update!");
             e.printStackTrace();
         }

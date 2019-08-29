@@ -1,6 +1,8 @@
 plugins {
     id 'java'
+    id "com.github.johnrengelman.shadow" version "5.1.0"
 }
+
 
 repositories {
     mavenCentral()
@@ -25,5 +27,5 @@ task copyDist(type: Copy) {
     into 'dist'
 }
 
-task output(dependsOn: ['jar', 'copyDist'])
+task output(dependsOn: ['copyDist', 'shadowJar'])
 
