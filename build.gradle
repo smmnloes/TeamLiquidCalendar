@@ -27,5 +27,7 @@ task copyDist(type: Copy) {
     into 'dist'
 }
 
+copyDist.shouldRunAfter(shadowJar)
+
 task output(dependsOn: ['copyDist', 'shadowJar'])
 
