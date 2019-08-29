@@ -21,7 +21,6 @@ import java.util.List;
 
 
 public class TLCalendarGUI extends Application {
-
     private ZonedDateTime startDate = ZonedDateTime.now();
     private Label lastUpdatedLabel;
 
@@ -38,7 +37,7 @@ public class TLCalendarGUI extends Application {
         primaryStage.setTitle("Team Liquid Starcraft 2 Calendar");
         primaryStage.setScene(scene);
         primaryStage.show();
-        updateCalendar(lastUpdatedLabel, grid, root);
+        updateCalendar(grid, root);
     }
 
     private GridPane initGridPane(StackPane root) {
@@ -64,21 +63,21 @@ public class TLCalendarGUI extends Application {
 
         grid.add(lastUpdatedLabel, 3, 3, 3, 1);
 
-        refreshButton.setOnAction(click -> updateCalendar(lastUpdatedLabel, grid, root));
+        refreshButton.setOnAction(click -> updateCalendar(grid, root));
 
         grid.add(refreshButton, 2, 3);
 
         Button lastWeekButton = new Button("prev. Week");
         lastWeekButton.setOnAction(click -> {
             startDate = startDate.minus(1, ChronoUnit.WEEKS);
-            updateCalendar(lastUpdatedLabel, grid, root);
+            updateCalendar(grid, root);
         });
         grid.add(lastWeekButton, 0, 3);
 
         Button nextWeekButton = new Button("next Week");
         nextWeekButton.setOnAction(click -> {
             startDate = startDate.plus(1, ChronoUnit.WEEKS);
-            updateCalendar(lastUpdatedLabel, grid, root);
+            updateCalendar(grid, root);
         });
         grid.add(nextWeekButton, 1, 3);
         return grid;
@@ -91,8 +90,9 @@ public class TLCalendarGUI extends Application {
         return newGrid;
     }
 
-    private void updateCalendar(Label lastUpdatedLabel, GridPane grid, StackPane root) {
+    private void updateCalendar(GridPane grid, StackPane root) {
         GridPane newGrid = resetGrid(root, grid);
+        lastUpdatedLabel.setText("Loading...");
         try {
             populateGrid(TLCalendarParserMain.getNewEvents(startDate), newGrid);
             lastUpdatedLabel.setText("Last Updated: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - hh:mm:ss a")));

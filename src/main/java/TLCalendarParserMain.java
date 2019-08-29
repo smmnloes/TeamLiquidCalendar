@@ -1,14 +1,14 @@
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import com.gargoylesoftware.htmlunit.BrowserVersion;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.WebRequest;
+import com.gargoylesoftware.htmlunit.WebResponse;
+import com.gargoylesoftware.htmlunit.html.DomNode;
+import com.gargoylesoftware.htmlunit.html.DomNodeList;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.util.FalsifyingWebConnection;
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,16 +24,46 @@ class TLCalendarParserMain {
     static List<Event>[] getNewEvents(ZonedDateTime startDate) throws IOException {
         String params = "&year=" + startDate.getYear() + "&month=" + startDate.getMonth().getValue() + "&day=" + startDate.getDayOfMonth();
         String query = "http://www.teamliquid.net/calendar/?view=week&game=1" + params;
-        Document wholePage = Jsoup.connect(query).get();
 
-        Elements weekDayColumns = wholePage.getElementsByClass("evc-l");
+
+        HtmlPage page;
+        try (WebClient webClient = new WebClient(BrowserVersion.CHROME)) {
+            initWebClient(webClient);
+
+            page = webClient.getPage(query);
+            while (page.getElementsById("calendar").size() < 2) {
+                webClient.waitForBackgroundJavaScript(500);
+            }
+
+        }
+        DomNodeList<DomNode> weekDayColumns = page.querySelectorAll(".evc-l");
+
+        if (weekDayColumns.size() == 0) {
+            throw new IOException("Could not get events from page");
+        }
         List<Event>[] eventListArray = new ArrayList[7];
 
         for (int i = 0; i < 7; i++) {
-            eventListArray[i] = extractEventsFromSection(weekDayColumns.get(i), i);
+            eventListArray[i] = extractEventsFromSection(weekDayColumns.get(i));
         }
-
         return eventListArray;
+    }
+
+    private static void initWebClient(WebClient webClient) {
+        webClient.getOptions().setThrowExceptionOnScriptError(false);
+        webClient.getOptions().setCssEnabled(false);
+
+        webClient.setWebConnection(new FalsifyingWebConnection(webClient) {
+            @Override
+            public WebResponse getResponse(WebRequest request) throws IOException {
+
+                if (request.getUrl().toString().contains("google")) {
+                    return createWebResponse(request, "", "application/javascript");
+                }
+
+                return super.getResponse(request);
+            }
+        });
     }
 
 
@@ -43,31 +73,19 @@ class TLCalendarParserMain {
      * @param element Weekday as Element
      * @return Linked List of all Events of that day
      */
-    private static List<Event> extractEventsFromSection(Element element, int daysFromNow) {
+    private static List<Event> extractEventsFromSection(DomNode element) {
         List<Event> events = new ArrayList<>();
 
-        Elements allEventsOfDay = element.getElementsByClass("ev-block");
+        DomNodeList<DomNode> allEventsOfDay = element.querySelectorAll(".ev-block");
 
-        for (Element x : allEventsOfDay) {
-            String eventName = x.select("[^data-event-id]").text();
-            String eventTime = adjustTimeZone(x.select(".ev-timer").text().trim(), daysFromNow);
-            String eventStage = x.select(".ev-stage").text();
+        for (DomNode x : allEventsOfDay) {
+            String eventName = x.querySelector(".ev-ctrl span").getTextContent();
+            String eventTime = x.querySelector(".ev-timer").getTextContent().trim();
+            String eventStage = x.querySelector(".ev-stage").getTextContent();
             events.add(new Event(eventName, eventTime, eventStage));
         }
 
         return events;
-    }
-
-    /**
-     * Converts the time to the local time zone (teamliquid calendar gives times in GMT Zone)
-     *
-     * @param time - Time in String-form
-     * @return Time adjusted by local Time-Zone
-     */
-    private static String adjustTimeZone(String time, int daysFromNow) {
-        ZonedDateTime originalEventTime = ZonedDateTime.of(LocalDate.now().plusDays(daysFromNow), LocalTime.parse(time), ZoneId.of("GMT"));
-        ZonedDateTime localEventTime = originalEventTime.withZoneSameInstant(ZoneId.systemDefault());
-        return localEventTime.format(DateTimeFormatter.ofPattern("HH:mm"));
     }
 
 }

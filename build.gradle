@@ -7,7 +7,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.jsoup:jsoup:1.12.1'
+    compile 'net.sourceforge.htmlunit:htmlunit:2.36.0'
 }
 
 jar {
