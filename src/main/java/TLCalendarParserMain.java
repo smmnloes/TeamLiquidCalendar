@@ -46,6 +46,7 @@ class TLCalendarParserMain {
         while (page.getElementsById("calendar").size() < 2) {
             webClient.waitForBackgroundJavaScript(500);
         }
+        webClient.waitForBackgroundJavaScript(100);
 
         DomNodeList<DomNode> weekDayColumns = page.querySelectorAll(".evc-l");
 
