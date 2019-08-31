@@ -1,7 +1,4 @@
-import com.gargoylesoftware.htmlunit.BrowserVersion;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.WebRequest;
-import com.gargoylesoftware.htmlunit.WebResponse;
+import com.gargoylesoftware.htmlunit.*;
 import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.DomNodeList;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
@@ -16,7 +13,6 @@ import java.util.List;
 
 class TLCalendarParserMain {
     private static WebClient webClient;
-    private static boolean firstLoad = true;
     private static String javaScript;
 
     /**
@@ -34,13 +30,8 @@ class TLCalendarParserMain {
 
         HtmlPage page = webClient.getPage(query);
 
-        // On the first load, the javascript for timezones gets executed correctly, from then on we have to execute it
-        // manually
-        if (firstLoad) {
-            firstLoad = false;
-        } else {
-            page.executeJavaScript(javaScript);
-        }
+
+        page.executeJavaScript(javaScript);
 
         // The timezones script duplicates the div with id "calendar". This is how we know it has completed.
         while (page.getElementsById("calendar").size() < 2) {
