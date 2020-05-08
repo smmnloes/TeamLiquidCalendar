@@ -10,4 +10,4 @@ Download the latest release jar file from [here](https://github.com/smmnloes/Tea
 in the directory you downloaded to.
 
 ## Requirements
-Java runtime.
+Java runtime version 14 or greater.
