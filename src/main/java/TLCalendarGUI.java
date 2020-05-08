@@ -18,6 +18,8 @@ public class TLCalendarGUI {
         lastUpdatedLabel = new Label();
 
         Container contentPane = jFrame.getContentPane();
+        contentPane.setBackground(Color.WHITE);
+
 
         updateCalendar(contentPane);
         jFrame.pack();
@@ -110,6 +112,7 @@ public class TLCalendarGUI {
             contentPaneContainer.add(dateLabel, dateLabelConstraints);
 
             TextArea eventsTextArea = new TextArea(concatEventsOfWeekday(events[i]));
+            eventsTextArea.setBackground(Color.WHITE);
             eventsTextArea.setEditable(false);
             eventsTextArea.setPreferredSize(new Dimension(250, 700));
             GridBagConstraints eventsAreaConstraints = new GridBagConstraints();
