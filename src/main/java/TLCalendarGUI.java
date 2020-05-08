@@ -1,17 +1,6 @@
-import javafx.application.Application;
-import javafx.geometry.HPos;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.RowConstraints;
-import javafx.scene.layout.StackPane;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.stage.Stage;
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
@@ -20,80 +9,74 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 
-public class TLCalendarGUI extends Application {
+public class TLCalendarGUI {
     private ZonedDateTime startDate = ZonedDateTime.now();
     private Label lastUpdatedLabel;
 
-    public void start(Stage primaryStage) {
+    public void start() {
+        JFrame jFrame = new JFrame("Team Liquid Starcraft 2 Calendar");
         lastUpdatedLabel = new Label();
 
-        StackPane root = new StackPane();
-        GridPane grid = initGridPane(root);
+        Container contentPane = jFrame.getContentPane();
 
-        root.getChildren().add(grid);
-
-        Scene scene = new Scene(root, 1800, 700);
-
-        primaryStage.setTitle("Team Liquid Starcraft 2 Calendar");
-        primaryStage.setScene(scene);
-        primaryStage.show();
-        updateCalendar(grid, root);
+        updateCalendar(contentPane);
+        jFrame.pack();
+        jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        jFrame.setMinimumSize(new Dimension(1800, 900));
+        jFrame.setVisible(true);
     }
 
-    private GridPane initGridPane(StackPane root) {
-        GridPane grid = new GridPane();
-
-        RowConstraints rcFirstRow = new RowConstraints();
-        rcFirstRow.setVgrow(Priority.NEVER);
-        grid.getRowConstraints().add(rcFirstRow);
-
-        RowConstraints rcSecondRow = new RowConstraints();
-        rcSecondRow.setVgrow(Priority.NEVER);
-        grid.getRowConstraints().add(rcSecondRow);
-
-        RowConstraints rcThirdRow = new RowConstraints();
-        rcThirdRow.setVgrow(Priority.ALWAYS);
-        grid.getRowConstraints().add(rcThirdRow);
-
-        RowConstraints rcFourthRow = new RowConstraints();
-        rcFourthRow.setVgrow(Priority.NEVER);
-        grid.getRowConstraints().add(rcFourthRow);
+    private void createScaffoldingComponents(Container contentPaneContainer) {
+        GridBagConstraints lastUpdatedConstraints = new GridBagConstraints();
+        lastUpdatedConstraints.gridx = 5;
+        lastUpdatedConstraints.gridy = 3;
+        lastUpdatedConstraints.gridwidth = 2;
+        contentPaneContainer.add(lastUpdatedLabel, lastUpdatedConstraints);
 
         Button refreshButton = new Button("Refresh");
+        GridBagConstraints refreshButtonConstraints = new GridBagConstraints();
+        refreshButtonConstraints.gridx = 0;
+        refreshButtonConstraints.gridy = 3;
 
-        grid.add(lastUpdatedLabel, 3, 3, 3, 1);
+        refreshButton.addActionListener(__ -> updateCalendar(contentPaneContainer));
+        contentPaneContainer.add(refreshButton, refreshButtonConstraints);
 
-        refreshButton.setOnAction(click -> updateCalendar(grid, root));
-
-        grid.add(refreshButton, 2, 3);
 
         Button lastWeekButton = new Button("prev. Week");
-        lastWeekButton.setOnAction(click -> {
+        lastWeekButton.addActionListener(__ -> {
             startDate = startDate.minus(1, ChronoUnit.WEEKS);
-            updateCalendar(grid, root);
+            updateCalendar(contentPaneContainer);
         });
-        grid.add(lastWeekButton, 0, 3);
+        GridBagConstraints lastWeekButtonConstraints = new GridBagConstraints();
+        lastWeekButtonConstraints.gridx = 1;
+        lastWeekButtonConstraints.gridy = 3;
+        contentPaneContainer.add(lastWeekButton, lastWeekButtonConstraints);
+
 
         Button nextWeekButton = new Button("next Week");
-        nextWeekButton.setOnAction(click -> {
+        nextWeekButton.addActionListener(__ -> {
             startDate = startDate.plus(1, ChronoUnit.WEEKS);
-            updateCalendar(grid, root);
+            updateCalendar(contentPaneContainer);
         });
-        grid.add(nextWeekButton, 1, 3);
-        return grid;
+        GridBagConstraints nextWeekButtonConstraints = new GridBagConstraints();
+        nextWeekButtonConstraints.gridx = 2;
+        nextWeekButtonConstraints.gridy = 3;
+        contentPaneContainer.add(nextWeekButton, nextWeekButtonConstraints);
     }
 
-    private GridPane resetGrid(StackPane root, GridPane oldGrid) {
-        root.getChildren().remove(oldGrid);
-        GridPane newGrid = initGridPane(root);
-        root.getChildren().add(newGrid);
-        return newGrid;
+    private void resetContainer(Container contentPaneContainer) {
+        contentPaneContainer.removeAll();
+        GridBagLayout grid = new GridBagLayout();
+        contentPaneContainer.setLayout(grid);
     }
 
-    private void updateCalendar(GridPane grid, StackPane root) {
-        GridPane newGrid = resetGrid(root, grid);
+    private void updateCalendar(Container contentPaneContainer) {
         try {
-            populateGrid(TLCalendarParserMain.getNewEvents(startDate), newGrid);
+            List<Event>[] newEvents = TLCalendarParserMain.getNewEvents(startDate);
+            resetContainer(contentPaneContainer);
+            createScaffoldingComponents(contentPaneContainer);
+            populateGrid(newEvents, contentPaneContainer);
+            repaintContainer(contentPaneContainer);
             lastUpdatedLabel.setText("Last Updated: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - hh:mm:ss a")));
         } catch (IOException e) {
             lastUpdatedLabel.setText("Error while trying to update!");
@@ -101,26 +84,39 @@ public class TLCalendarGUI extends Application {
         }
     }
 
-    private void populateGrid(List<Event>[] events, GridPane grid) {
+    private void repaintContainer(Container contentPaneContainer) {
+        contentPaneContainer.revalidate();
+        contentPaneContainer.repaint();
+    }
+
+    private void populateGrid(List<Event>[] events, Container contentPaneContainer) {
         for (int i = 0; i < 7; i++) {
             ZonedDateTime columnDate = startDate.plus(i, ChronoUnit.DAYS);
 
             Label weekdayLabel = new Label(columnDate.getDayOfWeek().toString() + "\n\n");
-            FontWeight fontWeight = columnDate.getDayOfYear() == ZonedDateTime.now().getDayOfYear() ? FontWeight.BOLD : FontWeight.NORMAL;
-            weekdayLabel.setFont(Font.font("Verdana", fontWeight, 15));
-            GridPane.setHalignment(weekdayLabel, HPos.CENTER);
-            grid.add(weekdayLabel, i, 0);
+            Font weekDayFont = new Font(Font.SANS_SERIF, columnDate.getDayOfYear() == ZonedDateTime.now().getDayOfYear() ? Font.BOLD : Font.PLAIN, 15);
+            weekdayLabel.setFont(weekDayFont);
+            GridBagConstraints weekdayLabelConstraints = new GridBagConstraints();
+            weekdayLabelConstraints.gridx = i;
+            weekdayLabelConstraints.gridy = 0;
+            contentPaneContainer.add(weekdayLabel, weekdayLabelConstraints);
 
             Label dateLabel = new Label(columnDate.format(DateTimeFormatter.ofPattern("dd.MM")));
-            dateLabel.setFont(Font.font("Verdana", fontWeight, 15));
-            GridPane.setHalignment(dateLabel, HPos.CENTER);
-            grid.add(dateLabel, i, 1);
+            dateLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 15));
+            GridBagConstraints dateLabelConstraints = new GridBagConstraints();
+            dateLabelConstraints.gridx = i;
+            dateLabelConstraints.gridy = 1;
+
+            contentPaneContainer.add(dateLabel, dateLabelConstraints);
 
             TextArea eventsTextArea = new TextArea(concatEventsOfWeekday(events[i]));
-            eventsTextArea.home();
             eventsTextArea.setEditable(false);
+            eventsTextArea.setPreferredSize(new Dimension(250, 700));
+            GridBagConstraints eventsAreaConstraints = new GridBagConstraints();
+            eventsAreaConstraints.gridx = i;
+            eventsAreaConstraints.gridy = 2;
 
-            grid.add(eventsTextArea, i, 2);
+            contentPaneContainer.add(eventsTextArea, eventsAreaConstraints);
         }
     }
 
@@ -136,7 +132,7 @@ public class TLCalendarGUI extends Application {
 
 
     public static void main(String[] args) {
-        launch(args);
+        javax.swing.SwingUtilities.invokeLater(() -> new TLCalendarGUI().start());
     }
 
 }
