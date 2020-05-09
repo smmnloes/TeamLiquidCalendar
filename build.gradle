@@ -10,6 +10,7 @@ repositories {
 
 dependencies {
     compile 'net.sourceforge.htmlunit:htmlunit:2.36.0'
+    compileOnly 'org.jetbrains:annotations:19.0.0'
 }
 
 jar {
