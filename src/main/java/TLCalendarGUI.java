@@ -84,13 +84,14 @@ public class TLCalendarGUI {
         }
     }
 
-    private void updateTextArea(Container contentPaneContainer, int i, List<Event> event) {
+    private void updateTextArea(Container contentPaneContainer, int i, List<Event> eventsWeekDay) {
         Component oldTextArea = textAreas[i];
         if (oldTextArea != null) {
             contentPaneContainer.remove(oldTextArea);
         }
 
-        TextArea eventsTextArea = new TextArea(concatEventsOfWeekday(event));
+        String eventsWeekDayString = eventsWeekDay.stream().map(Event::toString).reduce("", (acc, next) -> acc.concat(next).concat("\n"));
+        TextArea eventsTextArea = new TextArea(eventsWeekDayString);
         eventsTextArea.setBackground(Color.WHITE);
         eventsTextArea.setEditable(false);
         eventsTextArea.setPreferredSize(new Dimension(250, 700));
@@ -136,16 +137,6 @@ public class TLCalendarGUI {
         if (anchor != null)
             gridBagConstraints.anchor = anchor;
         return gridBagConstraints;
-    }
-
-    private String concatEventsOfWeekday(List<Event> events) {
-        StringBuilder sb = new StringBuilder();
-
-        for (Event e : events) {
-            sb.append(e).append("\n");
-        }
-
-        return sb.toString();
     }
 
 
