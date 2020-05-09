@@ -1,4 +1,6 @@
 
+import org.jetbrains.annotations.Nullable;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
@@ -34,19 +36,11 @@ public class TLCalendarGUI {
     }
 
     private void createButtons(Container contentPaneContainer) {
-        GridBagConstraints lastUpdatedConstraints = new GridBagConstraints();
-        lastUpdatedConstraints.gridx = 5;
-        lastUpdatedConstraints.gridy = 2;
-        lastUpdatedConstraints.gridwidth = 2;
-        contentPaneContainer.add(lastUpdatedLabel, lastUpdatedConstraints);
+        contentPaneContainer.add(lastUpdatedLabel, getGridbagConstraintsFor(5, 2, 2));
 
         Button refreshButton = new Button("Refresh");
-        GridBagConstraints refreshButtonConstraints = new GridBagConstraints();
-        refreshButtonConstraints.gridx = 0;
-        refreshButtonConstraints.gridy = 2;
-
         refreshButton.addActionListener(__ -> updateCalendar(contentPaneContainer));
-        contentPaneContainer.add(refreshButton, refreshButtonConstraints);
+        contentPaneContainer.add(refreshButton, getGridbagConstraintsFor(0, 2, null));
 
 
         Button lastWeekButton = new Button("prev. Week");
@@ -54,10 +48,7 @@ public class TLCalendarGUI {
             startDate = startDate.minus(1, ChronoUnit.WEEKS);
             updateCalendar(contentPaneContainer);
         });
-        GridBagConstraints lastWeekButtonConstraints = new GridBagConstraints();
-        lastWeekButtonConstraints.gridx = 1;
-        lastWeekButtonConstraints.gridy = 2;
-        contentPaneContainer.add(lastWeekButton, lastWeekButtonConstraints);
+        contentPaneContainer.add(lastWeekButton, getGridbagConstraintsFor(1, 2, null));
 
 
         Button nextWeekButton = new Button("next Week");
@@ -65,10 +56,7 @@ public class TLCalendarGUI {
             startDate = startDate.plus(1, ChronoUnit.WEEKS);
             updateCalendar(contentPaneContainer);
         });
-        GridBagConstraints nextWeekButtonConstraints = new GridBagConstraints();
-        nextWeekButtonConstraints.gridx = 2;
-        nextWeekButtonConstraints.gridy = 2;
-        contentPaneContainer.add(nextWeekButton, nextWeekButtonConstraints);
+        contentPaneContainer.add(nextWeekButton, getGridbagConstraintsFor(2, 2, null));
     }
 
     private void updateCalendar(Container contentPaneContainer) {
@@ -106,27 +94,20 @@ public class TLCalendarGUI {
         eventsTextArea.setBackground(Color.WHITE);
         eventsTextArea.setEditable(false);
         eventsTextArea.setPreferredSize(new Dimension(250, 700));
-        GridBagConstraints eventsAreaConstraints = new GridBagConstraints();
-        eventsAreaConstraints.gridx = i;
-        eventsAreaConstraints.gridy = 1;
 
         textAreas[i] = eventsTextArea;
-        contentPaneContainer.add(eventsTextArea, eventsAreaConstraints);
+        contentPaneContainer.add(eventsTextArea, getGridbagConstraintsFor(i, 1, null));
     }
 
     private void updateWeekdayDatePanel(Container contentPaneContainer, int i, ZonedDateTime columnDate) {
         JPanel weekdayDatePanel = createWeekDayDatePanel(columnDate);
-
-        GridBagConstraints weekdayDatePanelConstraints = new GridBagConstraints();
-        weekdayDatePanelConstraints.gridx = i;
-        weekdayDatePanelConstraints.gridy = 0;
 
         Component oldWeekdayDatePanel = weekdayDatePanels[i];
         if (oldWeekdayDatePanel != null) {
             contentPaneContainer.remove(oldWeekdayDatePanel);
         }
         weekdayDatePanels[i] = weekdayDatePanel;
-        contentPaneContainer.add(weekdayDatePanel, weekdayDatePanelConstraints);
+        contentPaneContainer.add(weekdayDatePanel, getGridbagConstraintsFor(i, 0, null));
     }
 
     private JPanel createWeekDayDatePanel(ZonedDateTime columnDate) {
@@ -143,6 +124,16 @@ public class TLCalendarGUI {
         dateLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 15));
         weekdayDatePanel.add(dateLabel);
         return weekdayDatePanel;
+    }
+
+    private static GridBagConstraints getGridbagConstraintsFor(int gridx, int gridy, @Nullable Integer gridwidth) {
+        var gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridx = gridx;
+        gridBagConstraints.gridy = gridy;
+        if (gridwidth != null) {
+            gridBagConstraints.gridwidth = gridwidth;
+        }
+        return gridBagConstraints;
     }
 
     private String concatEventsOfWeekday(List<Event> events) {
