@@ -36,44 +36,44 @@ public class TLCalendarGUI {
     }
 
     private void createButtons(Container contentPaneContainer) {
-        contentPaneContainer.add(lastUpdatedLabel, getGridbagConstraintsFor(5, 2, 2));
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(Color.WHITE);
+        BoxLayout boxLayout = new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS);
 
+        buttonPanel.setLayout(boxLayout);
         Button refreshButton = new Button("Refresh");
         refreshButton.addActionListener(__ -> updateCalendar(contentPaneContainer));
-        contentPaneContainer.add(refreshButton, getGridbagConstraintsFor(0, 2, null));
-
+        buttonPanel.add(refreshButton);
 
         Button lastWeekButton = new Button("prev. Week");
         lastWeekButton.addActionListener(__ -> {
             startDate = startDate.minus(1, ChronoUnit.WEEKS);
             updateCalendar(contentPaneContainer);
         });
-        contentPaneContainer.add(lastWeekButton, getGridbagConstraintsFor(1, 2, null));
-
+        buttonPanel.add(lastWeekButton);
 
         Button nextWeekButton = new Button("next Week");
         nextWeekButton.addActionListener(__ -> {
             startDate = startDate.plus(1, ChronoUnit.WEEKS);
             updateCalendar(contentPaneContainer);
         });
-        contentPaneContainer.add(nextWeekButton, getGridbagConstraintsFor(2, 2, null));
+        buttonPanel.add(nextWeekButton);
+        buttonPanel.add(lastUpdatedLabel);
+
+        contentPaneContainer.add(buttonPanel, getGridbagConstraintsFor(0, 2, 7, GridBagConstraints.LINE_START));
     }
 
     private void updateCalendar(Container contentPaneContainer) {
         try {
             List<Event>[] newEvents = TLCalendarParserMain.getNewEvents(startDate);
             populateGrid(newEvents, contentPaneContainer);
-            repaintContainer(contentPaneContainer);
+            contentPaneContainer.revalidate();
+            contentPaneContainer.repaint();
             lastUpdatedLabel.setText("Last Updated: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy - hh:mm:ss a")));
         } catch (IOException e) {
             lastUpdatedLabel.setText("Error while trying to update!");
             e.printStackTrace();
         }
-    }
-
-    private void repaintContainer(Container contentPaneContainer) {
-        contentPaneContainer.revalidate();
-        contentPaneContainer.repaint();
     }
 
     private void populateGrid(List<Event>[] events, Container contentPaneContainer) {
@@ -96,7 +96,7 @@ public class TLCalendarGUI {
         eventsTextArea.setPreferredSize(new Dimension(250, 700));
 
         textAreas[i] = eventsTextArea;
-        contentPaneContainer.add(eventsTextArea, getGridbagConstraintsFor(i, 1, null));
+        contentPaneContainer.add(eventsTextArea, getGridbagConstraintsFor(i, 1, null, null));
     }
 
     private void updateWeekdayDatePanel(Container contentPaneContainer, int i, ZonedDateTime columnDate) {
@@ -107,7 +107,7 @@ public class TLCalendarGUI {
             contentPaneContainer.remove(oldWeekdayDatePanel);
         }
         weekdayDatePanels[i] = weekdayDatePanel;
-        contentPaneContainer.add(weekdayDatePanel, getGridbagConstraintsFor(i, 0, null));
+        contentPaneContainer.add(weekdayDatePanel, getGridbagConstraintsFor(i, 0, null, null));
     }
 
     private JPanel createWeekDayDatePanel(ZonedDateTime columnDate) {
@@ -126,13 +126,15 @@ public class TLCalendarGUI {
         return weekdayDatePanel;
     }
 
-    private static GridBagConstraints getGridbagConstraintsFor(int gridx, int gridy, @Nullable Integer gridwidth) {
+    private static GridBagConstraints getGridbagConstraintsFor(int gridx, int gridy, @Nullable Integer gridwidth, @Nullable Integer anchor) {
         var gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = gridx;
         gridBagConstraints.gridy = gridy;
         if (gridwidth != null) {
             gridBagConstraints.gridwidth = gridwidth;
         }
+        if (anchor != null)
+            gridBagConstraints.anchor = anchor;
         return gridBagConstraints;
     }
 
