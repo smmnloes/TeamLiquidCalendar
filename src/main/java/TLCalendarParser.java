@@ -9,12 +9,14 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-class TLCalendarParserMain {
+class TLCalendarParser {
     private static WebClient webClient;
     private static String javaScript;
-
+    private static final Map<ZonedDateTime, List<Event>[]> cache = new HashMap<>();
     /**
      * Method is called by TILCalendarGUI to retrieve new Data
      *
@@ -23,6 +25,11 @@ class TLCalendarParserMain {
 
     @SuppressWarnings("unchecked")
     static List<Event>[] getNewEvents(ZonedDateTime startDate) throws IOException {
+        List<Event>[] cachedData = cache.get(startDate);
+        if (cachedData !=null) {
+            return cachedData;
+        }
+
         initSingletons();
 
         String params = "&year=" + startDate.getYear() + "&month=" + startDate.getMonth().getValue() + "&day=" + startDate.getDayOfMonth();
@@ -50,6 +57,7 @@ class TLCalendarParserMain {
             eventListArray[i] = extractEventsFromSection(weekDayColumns.get(i));
         }
 
+        cache.put(startDate, eventListArray);
         return eventListArray;
     }
 
@@ -59,7 +67,7 @@ class TLCalendarParserMain {
         }
 
         if (javaScript == null) {
-            javaScript = IOUtils.toString(TLCalendarParserMain.class.getResourceAsStream("timezones.js"), StandardCharsets.UTF_8);
+            javaScript = IOUtils.toString(TLCalendarParser.class.getResourceAsStream("timezones.js"), StandardCharsets.UTF_8);
         }
     }
 

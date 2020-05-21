@@ -65,7 +65,7 @@ public class TLCalendarGUI {
 
     private void updateCalendar(Container contentPaneContainer) {
         try {
-            List<Event>[] newEvents = TLCalendarParserMain.getNewEvents(startDate);
+            List<Event>[] newEvents = TLCalendarParser.getNewEvents(startDate);
             populateGrid(newEvents, contentPaneContainer);
             contentPaneContainer.revalidate();
             contentPaneContainer.repaint();

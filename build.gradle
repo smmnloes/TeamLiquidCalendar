@@ -30,5 +30,5 @@ task copyDist(type: Copy) {
 
 copyDist.shouldRunAfter(shadowJar)
 
-task output(dependsOn: ['copyDist', 'shadowJar'])
+task createDistributableJar(dependsOn: ['copyDist', 'shadowJar'])
 
