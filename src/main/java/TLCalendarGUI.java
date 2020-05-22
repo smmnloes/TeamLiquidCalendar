@@ -28,7 +28,7 @@ public class TLCalendarGUI {
         contentPane.setLayout(grid);
 
         createButtons(contentPane);
-        updateCalendar(contentPane);
+        updateCalendar(contentPane, true);
         jFrame.pack();
         jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         jFrame.setMinimumSize(new Dimension(1800, 900));
@@ -42,20 +42,20 @@ public class TLCalendarGUI {
 
         buttonPanel.setLayout(boxLayout);
         Button refreshButton = new Button("Refresh");
-        refreshButton.addActionListener(__ -> updateCalendar(contentPaneContainer));
+        refreshButton.addActionListener(__ -> updateCalendar(contentPaneContainer, false));
         buttonPanel.add(refreshButton);
 
         Button lastWeekButton = new Button("prev. Week");
         lastWeekButton.addActionListener(__ -> {
             startDate = startDate.minus(1, ChronoUnit.WEEKS);
-            updateCalendar(contentPaneContainer);
+            updateCalendar(contentPaneContainer, true);
         });
         buttonPanel.add(lastWeekButton);
 
         Button nextWeekButton = new Button("next Week");
         nextWeekButton.addActionListener(__ -> {
             startDate = startDate.plus(1, ChronoUnit.WEEKS);
-            updateCalendar(contentPaneContainer);
+            updateCalendar(contentPaneContainer, true);
         });
         buttonPanel.add(nextWeekButton);
         buttonPanel.add(lastUpdatedLabel);
@@ -63,9 +63,9 @@ public class TLCalendarGUI {
         contentPaneContainer.add(buttonPanel, getGridbagConstraintsFor(0, 2, 7, GridBagConstraints.LINE_START));
     }
 
-    private void updateCalendar(Container contentPaneContainer) {
+    private void updateCalendar(Container contentPaneContainer, boolean useCachedData) {
         try {
-            List<Event>[] newEvents = TLCalendarParser.getNewEvents(startDate);
+            List<Event>[] newEvents = TLCalendarParser.getNewEvents(startDate, useCachedData);
             populateGrid(newEvents, contentPaneContainer);
             contentPaneContainer.revalidate();
             contentPaneContainer.repaint();

@@ -17,17 +17,22 @@ class TLCalendarParser {
     private static WebClient webClient;
     private static String javaScript;
     private static final Map<ZonedDateTime, List<Event>[]> cache = new HashMap<>();
+
     /**
      * Method is called by TILCalendarGUI to retrieve new Data
      *
+     * @param startDate     the starting date of the week for which the events should be gathered
+     * @param useCachedData if true, the method will always query the web page and never use cached data
      * @return Array of LinkedLists with all events sorted by weekday
      */
 
     @SuppressWarnings("unchecked")
-    static List<Event>[] getNewEvents(ZonedDateTime startDate) throws IOException {
-        List<Event>[] cachedData = cache.get(startDate);
-        if (cachedData !=null) {
-            return cachedData;
+    static List<Event>[] getNewEvents(ZonedDateTime startDate, boolean useCachedData) throws IOException {
+        if (useCachedData) {
+            List<Event>[] cachedData = cache.get(startDate);
+            if (cachedData != null) {
+                return cachedData;
+            }
         }
 
         initSingletons();
